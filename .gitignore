@@ -159,3 +159,5 @@ profile_default/
 site/
 
 todo.txt
+
+.DS_Store
