@@ -6,10 +6,7 @@ from datetime import datetime
 import os
 
 class FileManager:
-    
-    def __init__(self, path : str | Path):
-        
-        self._ALGORITHMS = {
+    _ALGORITHMS = {
 
         "sha256": sha256,
 
@@ -19,33 +16,30 @@ class FileManager:
 
         }
         
+    def __init__(self, path : str | Path):
         
+    
+    
+    
         self._path = Path(path)
         
-     
     
-
-    def exists(self) -> bool:
-        """
-        The method to check whether the file exists.
-        It was created using with **pathlib.Path**
+    
+  
+    def get_path(self) -> Path:
         
-       
-        Returns
-        -------
-            True if the file exists.
-            False otherwise.
-        """
+        return self._path
+    
+  
+    def set_path(self,target_path:str) -> None:
         
-        return self._path.exists()
-    
-    
-    
+        self._path = Path(target_path)
     
     
     def hash(
        self,
-       algorithm: str ="sha256"  
+       algorithm: str ="md5",
+       file: Path | None = None 
     ) -> str:
         """
 
@@ -53,7 +47,7 @@ class FileManager:
         
         Params
         ------
-        algorithm: str, default="sha256",
+        algorithm: str, default="md5",
         Hash algorithm to use.
         
         Returns
@@ -74,18 +68,22 @@ class FileManager:
         FileNotFoundError
 
         """
+            
+         
         
-
         try:
 
             hash_function = self._ALGORITHMS[algorithm]
-            
+            if file is not None:
+                current_path = Path(file)
 
+            else:
+                current_path = self._path
         except KeyError as exc:
 
             raise ValueError(f"Unsupported hash algorithm: {algorithm}") from exc
 
-        return hash_function(self._path.read_bytes()).hexdigest()
+        return hash_function(current_path.read_bytes()).hexdigest()
     
     
     
@@ -114,17 +112,55 @@ class FileManager:
 
             "size": stat.st_size,
 
-            "created_time": datetime.fromtimestamp(stat.st_birthtime).strftime("%d/%m/%Y"),
+            "created_time": datetime.fromtimestamp(stat.st_ctime).strftime("%d/%m/%Y"),
 
             "extension": self._path.suffix,
             
-            "content": self._path.read_bytes()
 
         }
         
-        return infos          
+        return infos
 
-  
+    
+    
+    def compare(self,other : Path) -> bool:
+        
+        """
+        
+        Compares two file hash values.
+        
+        """
+        
+        if self.hash() == self.hash(file=other):
+            
+            return True
+        
+        return False
+    
+   
+    def verify(self,hash_value:str) -> bool:
+        """
+        
+        Checks the file hash value.
+        
+        hash_value (str) : MD5  
+        
+        """
+        if self.hash() == hash_value:
+            return True
+        
+        return False
+    
+    
+    def size(self) -> str:
+        """
+        
+        Returns the file size.
+        
+        """
         
         
-        
+        if self._path.stat().st_size < 1000000:
+            return f"{(self._path.stat().st_size)} Bytes"
+            
+        return f"{(self._path.stat().st_size / 1000000)} MB"
