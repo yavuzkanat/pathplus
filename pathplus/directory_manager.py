@@ -1,2 +1,12 @@
+from pathlib import Path
+
+
+
 class DirectoryManager:
-    pass
+    
+    def __init__(self,path):
+        
+        self._path = Path(path)
+        
+    
+    
