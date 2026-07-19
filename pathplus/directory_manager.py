@@ -16,7 +16,6 @@ class DirectoryManager:
     def tree(self) -> dict[str, list[str]]:
         """
         Generates a dictionary representing the directory tree.
-        
         Returns:
             dict[str, list[str]]: A dictionary where the keys are absolute directory 
                                 paths (as strings) and values are lists of file 
