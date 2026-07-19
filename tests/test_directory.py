@@ -1,14 +1,17 @@
-import pytest
 from pathplus import DirectoryManager
+import pytest
 
-# This fixture creates a predictable file in a temporary directory for your hashing tests
-@pytest.fixture
-def sample_file(tmp_path):
-    test_file = tmp_path / "test.txt"
-    test_file.write_text("Hello, World!")
-    return test_file
 
-def tree_size(sample_file):
-        test = DirectoryManager(".")
-        
-        print("test :",test.tree())
+
+
+def test_tree(tmp_path):
+    # Geçici dizinde dosyalar oluştur
+    (tmp_path / "a.txt").write_text("Hello")
+    (tmp_path / "b.txt").write_text("World")
+
+    manager = DirectoryManager(tmp_path)
+
+    tree = manager.tree()
+
+    assert str(tmp_path) in tree
+    assert sorted(tree[str(tmp_path)]) == ["a.txt", "b.txt"]
