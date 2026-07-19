@@ -1,6 +1,6 @@
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from .file_manager import FileManager
-from .directories import DirectoryManager
+from .directory_manager import DirectoryManager
 
 __all__ = ["FileManager", "DirectoryManager"]
