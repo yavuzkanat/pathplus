@@ -17,7 +17,7 @@ pip install pathplus
 
 ```
 
-### Usage 
+### Usage 
 
 ```python
 from pathplus import FileManager
