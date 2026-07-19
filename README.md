@@ -29,6 +29,14 @@ print(file.hash())
 print(file.info())
 ```
 
+```python
+from pathplus import DirectoryManager
+
+directory = DirectoryManager("project")
+
+print(directory.tree())
+```
+
 ## Release Notes
 
 ### V.0.1.0
