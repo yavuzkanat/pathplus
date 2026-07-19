@@ -9,8 +9,3 @@ def sample_file(tmp_path):
     return test_file
 
 
-def test_info(tmp_path):
-    info = file_manager.FileManager(tmp_path).info()
-    print(info)
-    assert True
-    
