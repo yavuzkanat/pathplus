@@ -1,12 +1,13 @@
 import pytest
 from pathplus import FileManager
 
-# This fixture creates a predictable file in a temporary directory for your hashing tests
+
 @pytest.fixture
 def sample_file(tmp_path):
     test_file = tmp_path / "test.txt"
     test_file.write_text("Hello, World!")
     return test_file
+
 
 @pytest.fixture
 def sample_file2(tmp_path):
@@ -15,18 +16,22 @@ def sample_file2(tmp_path):
     return test_file
 
 
-def test_compare(sample_file,sample_file2):
-    # Pass the dynamic temporary file path to your FileManager
-    h = FileManager(str(sample_file))
-    assert False == h.compare(sample_file2)
-    
+def test_compare_different_files(sample_file, sample_file2):
+    h = FileManager(sample_file)
+    assert h.compare(sample_file2) is False
 
-def test_compare2(sample_file,sample_file2):
-    # Pass the dynamic temporary file path to your FileManager
-    h = FileManager(str(sample_file))
-    assert True == h.compare(sample_file)
-    
+
+def test_compare_same_file(sample_file):
+    h = FileManager(sample_file)
+    assert h.compare(sample_file) is True
+
+
+def test_compare_with_algorithm(sample_file):
+    h = FileManager(sample_file)
+    assert h.compare(sample_file, algorithm="sha256") is True
+
 
 def test_verify(sample_file):
-    h = FileManager(str(sample_file))
-    assert True == h.verify("65a8e27d8879283831b664bd8b7f0ad4")  
+    h = FileManager(sample_file)
+    assert h.verify("65a8e27d8879283831b664bd8b7f0ad4") is True
+    assert h.verify("00000000000000000000000000000000") is False

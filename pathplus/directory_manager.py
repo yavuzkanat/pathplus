@@ -1,71 +1,80 @@
-from pathlib import Path
+from __future__ import annotations
+
 import os
+from pathlib import Path
+
+from .utils import format_size
 
 
 class DirectoryManager:
-    
-    def __init__(self,path : str | Path):
-
-        
-        
+    def __init__(self, path: str | Path):
         self._path = Path(path)
-    
-    
-  
 
-    def tree(self) -> dict[str, list[str]]:
-        """
-        Generates a dictionary representing the directory tree.
-        Returns:
-            dict[str, list[str]]: A dictionary where the keys are absolute directory 
-                                paths (as strings) and values are lists of file 
-                                names contained within those directories.
-        """
-        data = {}
-            
-        for root, dirs, files in os.walk(self._path.absolute()):
-            if files:  # Only include directories that actually contain files
-                # Converting root (path) to str to strictly match your type hint
-                data[str(root)] = files
-                
+    def tree(self, include_empty_dirs: bool = False) -> dict[str, list[str]]:
+        """Generate a dictionary mapping directories to the files they directly contain."""
+        if not self._path.is_dir():
+            raise NotADirectoryError(f"Path is not a directory: {self._path}")
+
+        data: dict[str, list[str]] = {}
+        for root, dirs, files in os.walk(self._path.resolve()):
+            if files or include_empty_dirs:
+                data[str(Path(root).resolve())] = sorted(files)
         return data
 
-
-
-  
-
-    def total_size(self) -> str | None:
-        """
-        Calculates and returns the total size of the directory and all its contents
-        formatted in Bytes, MB, or GB.
-        
-        Returns:
-            str | None: The formatted total size, or None if the path is not a directory.
-        """
+    def files(self, recursive: bool = True) -> list[Path]:
+        """Return the files contained in the directory."""
         if not self._path.is_dir():
-            return None
+            raise NotADirectoryError(f"Path is not a directory: {self._path}")
 
-        # 1. Calculate the actual total size of all files inside the directory
-        total_bytes = 0
-        for root, _, files in os.walk(self._path.absolute()):
-            for file in files:
-                file_path = os.path.join(root, file)
-                try:
-                    # Use os.path.getsize to get the size of each file
-                    total_bytes += os.path.getsize(file_path)
-                except OSError:
-                    # Handle cases where a file might have been deleted or is inaccessible
-                    continue
+        if recursive:
+            return sorted([path for path in self._path.rglob("*") if path.is_file()])
 
-        # 2. Format the size dynamically
-        if total_bytes < 1_000_000:
-            return f"{total_bytes} Bytes"
-        elif total_bytes < 1_000_000_000:
-            # Rounding to 2 decimal places makes the string look much cleaner
-            return f"{total_bytes / 1_000_000:.2f} MB"
-        else:
-            return f"{total_bytes / 1_000_000_000:.2f} GB"
-        
+        return sorted([path for path in self._path.iterdir() if path.is_file()])
+
+    def file_count(self, recursive: bool = True) -> int:
+        """Return the number of files in the directory."""
+        return len(self.files(recursive=recursive))
+
+    def directory_count(self, recursive: bool = True) -> int:
+        """Return the number of subdirectories."""
+        if not self._path.is_dir():
+            raise NotADirectoryError(f"Path is not a directory: {self._path}")
+
+        if recursive:
+            return sum(1 for path in self._path.rglob("*") if path.is_dir())
+
+        return sum(1 for path in self._path.iterdir() if path.is_dir())
+
+    def find(self, pattern: str = "*", recursive: bool = True) -> list[Path]:
+        """Find paths matching a glob pattern."""
+        if not self._path.is_dir():
+            raise NotADirectoryError(f"Path is not a directory: {self._path}")
+
+        if recursive:
+            return sorted(self._path.rglob(pattern))
+
+        return sorted(self._path.glob(pattern))
+
+    def largest_files(self, limit: int = 5) -> list[tuple[Path, int]]:
+        """Return the largest files by size."""
+        files = self.files(recursive=True)
+        file_sizes = [(path, path.stat().st_size) for path in files]
+        return sorted(file_sizes, key=lambda item: item[1], reverse=True)[:limit]
+
+    def total_size_bytes(self) -> int:
+        """Return the total size of all files inside the directory."""
+        return sum(path.stat().st_size for path in self.files(recursive=True))
+
+    def total_size(self, formatted: bool = True) -> str | int:
+        """Return the total directory size, optionally formatted."""
+        size = self.total_size_bytes()
+        return format_size(size) if formatted else size
+
+    def is_empty(self) -> bool:
+        """Return True when the directory contains no files or subdirectories."""
+        if not self._path.is_dir():
+            raise NotADirectoryError(f"Path is not a directory: {self._path}")
+        return not any(self._path.iterdir())        
         
         
         
