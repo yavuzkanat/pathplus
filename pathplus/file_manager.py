@@ -3,7 +3,7 @@ from hashlib import sha256
 from hashlib import sha512
 from hashlib import md5
 from datetime import datetime
-import os
+
 
 class FileManager:
     _ALGORITHMS = {
